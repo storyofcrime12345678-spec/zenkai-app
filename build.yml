@@ -1,0 +1,158 @@
+name: Build ZENKAI APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Create Android project
+        run: |
+          mkdir -p app/src/main/java/com/zenkai/anime app/src/main/res/mipmap-xxhdpi
+          echo "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAFPklEQVR4nO3cvVEsSRBF4WQEhJEQVsCEXV+eP8+G9Wd9WRewAAHpCU0UQ9NdXf9VmXmOTjAR9cXtniKCp/v9RUZ1f34d9ruc9/7xNuYXPXUFhJhF6uepCyDcLFtzSY0BQUdFDRk1AwQddTVh1AAQdFRXyagKEHTMVMzoVvwr0WOp4tMsWSDoGC53irIXCD22yz3fPEDo8VDWKWcAQo+f0s86FRB6vJV44kmA0OOzlHO/BoQez12e/gUg9FDcQAwQeiL9/vX/7I8wroiEU0DoieRKz9aZh/I/ZRDJGSDmJ5LD+dk6VHEACD2Rgp5///tn7ieZ0k8bPMIycrs9kfaAmB+KtxPCAqXG/Bz2DRDzcxZ6Hnt0wgJdh55IX4CYH0ovaGGBLmJ+4n0CYn4OO9Pj8xJo12aGBTqN7UkJQFTVTXh+HcX8pHR/fmWBDkJPegDah56sAERVAehbzE9uN96gQ4l6uAR6jAX6jO0pC0BUFYBEmJ+KAISeqrwDQk9l3gFRZa4BMT/1+QVUpodLoF1OAbE9rXIKiFrlERDz0zB3gNDTNl+A0NM8X4CoeY4AMT898gKoiR4ugX7mAhDb0y8XgKhf9gExP10zDgg9vbMMCD0DsgyIBmQWEPMzJpuAeujhEugwg4DYnpEZBEQjswaI+RmcKUDoGZ8dQOiZkh1ANCUjgJifWVkANEAPl0BnqQfE9sxNPSCam25AzM/0FANCzwppBYSeRdIKiBZJJSDmZ530ARqvh0ugSMoAsT2rpQwQrZYmQMzPgj399fL37M+QFHpCS72T6Vgg9ISW0iNaANHWanpEBSDmZ+VWB4Se0ILzI4sDQk9oTT2yOCDaWlaPrAyI+VHRooDQE1p5fmRNQOgJLa5H1gREW+vrkQUBMT+6WgsQekIq5keWAoSekBY9shQg2lKkR9YBxPwobQlA6Anpmh9ZARB6Qur0yAqAaEujHpkOiPnR3kxA6AkpnR+ZCAg9Ib16ZPojjFTrkVmAmB8zTQCEnpD2+ZHxgNATMqBHeAealQ09MhgQ82OvcYDQEzIzPzIMEHpClvQI70CDM6ZHxgBifgzXHRB6QvbmRxT9g6lWzQJtUo/wDjQmq3oEQFQZgLpneH7EGyD+SXnzfAEanHk9AiCqDEC98jA/AqBOOdEjAOqRHz0CIKoMQI1zNT/iCtCASyBvesQVoN451CMAosoA1Caf8yMAapJbPQKg+jzrEQBRZQCqyvn8iB9APS6B0CN+ADUPPVsAoqoAVBLzEwJQduh5DEB5oWcXgKgqAGXE/PzMBaAml0DoOcwFoPrQcxaAqCoAXcf8RALQReiJB6BY6LkMQFQVgE5jflKyD6jsEgg9idkHVBB60gMQVQWgfcxPVgD6FnpyA9BX6CkIQFQVgD5jfsq6vX+8zf4MHUu8BEJPcSwQeqoCEFXlHRDzU5lrQOip7yYitt+jz0JPfe8fb64XiOpzCoj5adUnIJNPsbNLIPQ0aTPjboHQ07YvQCZHiDoVtPhaIOaned8A2R4h9LTq0YmXBUJPp/aAbI8Q1bcT4mKBmJ9+HQCyMULhEgg9Dftp43iBbBgS9DTtUIWLRxj16xSQgRFifhp25uHpfn+J/Nj9+bXLxyFVRdbk4hFmYIeosriB63cgDHnu8vSTXqIx5LOUc0/9FoYhbyWeeMbXeAz5Kf2s8+6BMOShrFPOvkjEkO1yz/fiHigSV0TGKpuG8j9lMEWWKj7N8gUKMUWqqxyCBoC2YKSuJs+QZoC2YKSihq8fjQFtwWjZmr+5dgEUQtIi9fvG8weXHYkdrlMmHgAAAABJRU5ErkJggg==" | base64 -d > app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cat > settings.gradle <<'EOT'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "Zenkai"
+          include ':app'
+          EOT
+          cat > build.gradle <<'EOT'
+          plugins { id 'com.android.application' version '8.5.2' apply false }
+          EOT
+          echo "org.gradle.jvmargs=-Xmx2g" > gradle.properties
+          cat > app/build.gradle <<'EOT'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.zenkai.anime'
+              compileSdk 34
+              defaultConfig {
+                  applicationId 'com.zenkai.anime'
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName '1.0'
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOT
+          cat > app/src/main/AndroidManifest.xml <<'EOT'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:label="ZENKAI"
+                  android:icon="@mipmap/ic_launcher"
+                  android:theme="@android:style/Theme.Black.NoTitleBar"
+                  android:hardwareAccelerated="true">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOT
+          cat > app/src/main/java/com/zenkai/anime/MainActivity.java <<'EOT'
+          package com.zenkai.anime;
+
+          import android.app.Activity;
+          import android.content.pm.ActivityInfo;
+          import android.graphics.Color;
+          import android.os.Bundle;
+          import android.view.View;
+          import android.view.WindowManager;
+          import android.webkit.CookieManager;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.FrameLayout;
+
+          public class MainActivity extends Activity {
+              static final String URL = "https://sparkly-kleicha-47571f.netlify.app";
+              FrameLayout root;
+              WebView web;
+              View custom;
+              WebChromeClient.CustomViewCallback customCb;
+
+              @Override
+              protected void onCreate(Bundle b) {
+                  super.onCreate(b);
+                  // Blocks screenshots and screen recording (video area turns black)
+                  getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                          WindowManager.LayoutParams.FLAG_SECURE);
+                  root = new FrameLayout(this);
+                  root.setBackgroundColor(Color.BLACK);
+                  web = new WebView(this);
+                  web.setBackgroundColor(Color.BLACK);
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setMediaPlaybackRequiresUserGesture(false);
+                  CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
+                  web.setWebViewClient(new WebViewClient());
+                  web.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onShowCustomView(View v, CustomViewCallback cb) {
+                          if (custom != null) { cb.onCustomViewHidden(); return; }
+                          custom = v;
+                          customCb = cb;
+                          web.setVisibility(View.GONE);
+                          root.addView(v, new FrameLayout.LayoutParams(-1, -1));
+                          setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                          getWindow().getDecorView().setSystemUiVisibility(
+                                  View.SYSTEM_UI_FLAG_FULLSCREEN
+                                  | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                  | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                  | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                      }
+                      @Override
+                      public void onHideCustomView() { hideCustom(); }
+                  });
+                  root.addView(web, new FrameLayout.LayoutParams(-1, -1));
+                  setContentView(root);
+                  web.loadUrl(URL);
+              }
+
+              void hideCustom() {
+                  if (custom == null) return;
+                  root.removeView(custom);
+                  custom = null;
+                  if (customCb != null) customCb.onCustomViewHidden();
+                  customCb = null;
+                  web.setVisibility(View.VISIBLE);
+                  setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (custom != null) hideCustom();
+                  else if (web.canGoBack()) web.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          EOT
+          gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zenkai-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
